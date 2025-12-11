@@ -7,10 +7,11 @@ set -euo pipefail
 # This script handles:
 # - UID/GID adjustment (runs as root, then switches to app user)
 # - Python installation via uv
+# - Virtual environment setup at /workspace/.venv
+# - vcstool repository import (if app.repos.yaml exists)
 # - Executing /start.sh or CMD
 #
 # User is responsible for providing /start.sh with:
-# - Virtual environment setup (if needed)
 # - Dependency installation
 # - Application startup
 # ========================================

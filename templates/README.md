@@ -10,6 +10,7 @@ the `hdae/ai-base` base image.
 | UID/GID adjustment                        | `entrypoint.sh` (built-in) |
 | Python installation (`uv python install`) | `entrypoint.sh` (built-in) |
 | Virtual environment setup                 | `entrypoint.sh` (built-in) |
+| vcstool repository import                 | `entrypoint.sh` (built-in) |
 | Dependency installation                   | **Your `start.sh`**        |
 | Application startup                       | **Your `start.sh`**        |
 
@@ -27,7 +28,6 @@ the `hdae/ai-base` base image.
    ```
 
 2. **Edit `start.sh`** to customize for your project:
-   - Set up virtual environment
    - Install dependencies
    - Start your application
 
@@ -43,11 +43,12 @@ the `hdae/ai-base` base image.
 
 Set in `.env` or `docker-compose.yml`:
 
-| Variable         | Default | Description               |
-| ---------------- | ------- | ------------------------- |
-| `PUID`           | 1000    | User ID inside container  |
-| `PGID`           | 1000    | Group ID inside container |
-| `PYTHON_VERSION` | 3.12    | Python version            |
+| Variable         | Default | Description                               |
+| ---------------- | ------- | ----------------------------------------- |
+| `PUID`           | 1000    | User ID inside container                  |
+| `PGID`           | 1000    | Group ID inside container                 |
+| `PYTHON_VERSION` | 3.12    | Python version                            |
+| `SKIP_VCS`       | false   | Skip vcstool installation and repo import |
 
 ### Development Mode (without app.repos.yaml)
 
@@ -57,7 +58,7 @@ For local development where you mount your project directly, you don't need
 1. **Remove or comment out** the `app.repos.yaml` volume mount in
    `docker-compose.yml`
 2. **Mount your project** to `/workspace/app`
-3. **Set `SKIP_VCS=true`** to skip repository cloning
+3. **Set `SKIP_VCS=true`** to skip vcstool installation and repository import
 
 ```yaml
 # docker-compose.yml
@@ -108,7 +109,8 @@ USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     your-package \
     && rm -rf /var/lib/apt/lists/*
-USER app
+# Note: Do NOT add "USER app" here.
+# The entrypoint runs as root and switches to app user via gosu.
 ```
 
 Then update `docker-compose.yml`:
@@ -122,10 +124,12 @@ services:
 
 ### Custom Entrypoint
 
-The base image's `entrypoint.sh` only handles:
+The base image's `entrypoint.sh` handles:
 
-- UID/GID adjustment
+- UID/GID adjustment (runs as root, then switches to `app` user)
 - Python installation via `uv`
+- Virtual environment setup at `/workspace/.venv`
+- vcstool repository import (if `app.repos.yaml` exists)
 - Executing `/start.sh` (your script)
 
 To fully customize the entrypoint, mount your own:

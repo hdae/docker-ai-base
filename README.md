@@ -6,7 +6,7 @@ A minimal, highly adaptable Docker base image for Python/AI applications.
 
 This project provides:
 
-- **Base Image** (`hdae/ai-base`): Minimal Debian image with `uv` and `vcstool`
+- **Base Image** (`hdae/ai-base`): Minimal Debian image with `uv`
 - **Template**: Ready-to-use Docker Compose setup for your projects
 
 ## Quick Start
@@ -33,7 +33,7 @@ See [templates/README.md](templates/README.md) for detailed template usage.
 ## Base Image Features
 
 - **Base**: Debian Bookworm Slim
-- **Tools**: `uv` (Python package manager), `vcstool` (multi-repo management)
+- **Tools**: `uv` (Python package manager)
 - **User**: Non-root `app` user with configurable UID/GID at runtime
 - **Workdir**: `/workspace`
 
@@ -67,6 +67,9 @@ If you need additional system packages:
 ```dockerfile
 FROM hdae/ai-base
 USER root
-RUN apt-get update && apt-get install -y your-package
-USER app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    your-package \
+    && rm -rf /var/lib/apt/lists/*
+# Note: Do NOT add "USER app" here.
+# The entrypoint runs as root and switches to app user via gosu.
 ```
