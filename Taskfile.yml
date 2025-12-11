@@ -1,0 +1,28 @@
+version: '3'
+
+# Root Taskfile - for building the base image only
+
+tasks:
+  build:
+    desc: Build the hdae/ai-base Docker image
+    cmds:
+      - docker build -t hdae/ai-base ./base
+
+  build.debian:
+    desc: Build with specific Debian version
+    cmds:
+      - docker build -t hdae/ai-base --build-arg DEBIAN_VERSION={{.DEBIAN_VERSION}} ./base
+    vars:
+      DEBIAN_VERSION: '{{.DEBIAN_VERSION | default "bookworm"}}'
+
+  push:
+    desc: Push image to registry (configure registry first)
+    cmds:
+      - docker push hdae/ai-base
+
+  create-volume:
+    desc: Create shared uv-cache volume
+    cmds:
+      - docker volume create shared_uv-cache || true
+    status:
+      - docker volume inspect shared_uv-cache

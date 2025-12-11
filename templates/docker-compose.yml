@@ -1,0 +1,67 @@
+# Template docker-compose.yml
+# Copy this to your project and customize as needed
+
+services:
+  app:
+    image: hdae/ai-base
+    restart: unless-stopped
+    # ports:
+    #   - "8000:8000"
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - UV_CACHE_DIR=/workspace/.uv-cache
+      - PYTHON_VERSION=${PYTHON_VERSION:-3.12}
+      # - SKIP_VCS=true  # Uncomment if mounting local code
+    volumes:
+      # Persistent storage for the entire workspace
+      - app-data:/workspace
+
+      # Cache volume (Shared)
+      - uv-cache:/workspace/.uv-cache
+
+      # Startup script (required - customize for your project)
+      - ./start.sh:/start.sh
+
+      # Repository configuration (optional)
+      - ./app.repos.yaml:/workspace/app.repos.yaml
+
+      # Mount your project source code (for development)
+      # - .:/workspace/app
+
+    tty: true
+    security_opt:
+      - no-new-privileges:true
+
+    # ========================================
+    # GPU Support (Uncomment if needed)
+    # ========================================
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+    # ========================================
+    # Health Check (Uncomment if needed)
+    # ========================================
+    # healthcheck:
+    #   test: ["CMD", "python", "-c", "print('ok')"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 60s
+
+# ========================================
+# Volumes
+# ========================================
+# Note: shared_uv-cache must be created before starting:
+#   docker volume create shared_uv-cache
+# Or use: task up (which creates it automatically)
+volumes:
+  app-data:
+  uv-cache:
+    name: shared_uv-cache
+    external: true
