@@ -6,8 +6,10 @@ A minimal, highly adaptable Docker base image for Python/AI applications.
 
 This project provides:
 
-- **Base Image** (`hdae/ai-base`): Minimal Debian image with `uv`
-- **Template**: Ready-to-use Docker Compose setup for your projects
+- **Base Image** (`hdae/ai-base`): Minimal Debian image with `uv` and Python
+  tooling
+- **Templates**: Ready-to-use Docker Compose setup with git helpers for your
+  projects
 
 ## Quick Start
 
@@ -33,9 +35,11 @@ See [templates/README.md](templates/README.md) for detailed template usage.
 ## Base Image Features
 
 - **Base**: Debian Bookworm Slim
-- **Tools**: `uv` (Python package manager)
+- **Package Manager**: `uv` for fast Python package management
+- **System Tools**: `git`, `curl`, `ca-certificates`, `gosu`
 - **User**: Non-root `app` user with configurable UID/GID at runtime
 - **Workdir**: `/workspace`
+- **Virtual Environment**: Automatically created at `/workspace/.venv`
 
 ## Project Structure
 
@@ -46,8 +50,7 @@ See [templates/README.md](templates/README.md) for detailed template usage.
 ├── templates/         # Template for projects
 │   ├── docker-compose.yml
 │   ├── Taskfile.yml
-│   ├── app.repos.yaml
-│   ├── start.sh
+│   ├── start.sh       # Includes git clone helpers
 │   └── README.md
 ├── Taskfile.yml       # Build commands
 └── README.md          # This file
@@ -70,6 +73,5 @@ USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     your-package \
     && rm -rf /var/lib/apt/lists/*
-# Note: Do NOT add "USER app" here.
-# The entrypoint runs as root and switches to app user via gosu.
+# The entrypoint runs as root and switches to app user via gosu
 ```

@@ -8,10 +8,10 @@ set -euo pipefail
 # - UID/GID adjustment (runs as root, then switches to app user)
 # - Python installation via uv
 # - Virtual environment setup at /workspace/.venv
-# - vcstool repository import (if app.repos.yaml exists)
 # - Executing /start.sh or CMD
 #
 # User is responsible for providing /start.sh with:
+# - Git repository cloning (if needed)
 # - Dependency installation
 # - Application startup
 # ========================================
@@ -19,7 +19,6 @@ set -euo pipefail
 PUID=${PUID:-1000}
 PGID=${PGID:-1000}
 PYTHON_VERSION=${PYTHON_VERSION:-3.12}
-SKIP_VCS=${SKIP_VCS:-false}
 export APP_DIR="/workspace"
 
 # ========================================
@@ -50,14 +49,9 @@ if [ "$(id -u)" = "0" ]; then
         usermod -u "$PUID" app
     fi
 
-    # Fix ownership of workspace
-    WORKSPACE_OWNER=$(stat -c '%u' /workspace 2>/dev/null || echo "0")
-    if [ "$WORKSPACE_OWNER" != "$PUID" ]; then
-        echo "Fixing permissions for /workspace..."
-        chown -R "app:$(id -gn app)" /workspace
-    else
-        echo "Workspace permissions already correct."
-    fi
+    # Fix ownership of workspace and mounted volumes
+    echo "Fixing permissions for /workspace and mounted subdirectories..."
+    chown -R "app:$(id -gn app)" /workspace
 
     # Switch to app user for the rest
     exec gosu app "$0" "$@"
@@ -95,25 +89,6 @@ fi
 export VIRTUAL_ENV="$VENV_DIR"
 export UV_PROJECT_ENVIRONMENT="$VENV_DIR"
 export PATH="$VENV_DIR/bin:$PATH"
-
-# ========================================
-# vcstool Repository Import
-# ========================================
-if [ "$SKIP_VCS" = "true" ]; then
-    echo "Skipping vcstool (SKIP_VCS=true)"
-elif [ -f "$APP_DIR/app.repos.yaml" ]; then
-    echo "Installing vcstool..."
-    if ! uv pip install vcstool; then
-        echo "ERROR: Failed to install vcstool"
-        exit 1
-    fi
-
-    echo "Importing repositories from app.repos.yaml..."
-    if ! vcs import "$APP_DIR" < "$APP_DIR/app.repos.yaml"; then
-        echo "ERROR: Failed to import repositories from app.repos.yaml"
-        exit 1
-    fi
-fi
 
 echo "=== Entrypoint complete (venv active) ==="
 

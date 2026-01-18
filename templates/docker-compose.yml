@@ -4,7 +4,7 @@
 services:
   app:
     image: hdae/ai-base
-    restart: unless-stopped
+    restart: "no"
     # ports:
     #   - "8000:8000"
     environment:
@@ -12,7 +12,6 @@ services:
       - PGID=${PGID:-1000}
       - UV_CACHE_DIR=/workspace/.uv-cache
       - PYTHON_VERSION=${PYTHON_VERSION:-3.12}
-      # - SKIP_VCS=true  # Uncomment if mounting local code
     volumes:
       # Persistent storage for the entire workspace
       - app-data:/workspace
@@ -23,10 +22,8 @@ services:
       # Startup script (required - customize for your project)
       - ./start.sh:/start.sh
 
-      # Repository configuration (optional)
-      - ./app.repos.yaml:/workspace/app.repos.yaml
-
       # Mount your project source code (for development)
+      # Recommended: Use git submodules or clone directly, then mount here
       # - .:/workspace/app
 
     tty: true

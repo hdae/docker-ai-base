@@ -10,7 +10,7 @@ the `hdae/ai-base` base image.
 | UID/GID adjustment                        | `entrypoint.sh` (built-in) |
 | Python installation (`uv python install`) | `entrypoint.sh` (built-in) |
 | Virtual environment setup                 | `entrypoint.sh` (built-in) |
-| vcstool repository import                 | `entrypoint.sh` (built-in) |
+| Git repository cloning (if needed)        | **Your `start.sh`**        |
 | Dependency installation                   | **Your `start.sh`**        |
 | Application startup                       | **Your `start.sh`**        |
 
@@ -28,6 +28,7 @@ the `hdae/ai-base` base image.
    ```
 
 2. **Edit `start.sh`** to customize for your project:
+   - Clone repositories (if needed)
    - Install dependencies
    - Start your application
 
@@ -43,45 +44,63 @@ the `hdae/ai-base` base image.
 
 Set in `.env` or `docker-compose.yml`:
 
-| Variable         | Default | Description                               |
-| ---------------- | ------- | ----------------------------------------- |
-| `PUID`           | 1000    | User ID inside container                  |
-| `PGID`           | 1000    | Group ID inside container                 |
-| `PYTHON_VERSION` | 3.12    | Python version                            |
-| `SKIP_VCS`       | false   | Skip vcstool installation and repo import |
+| Variable         | Default | Description               |
+| ---------------- | ------- | ------------------------- |
+| `PUID`           | 1000    | User ID inside container  |
+| `PGID`           | 1000    | Group ID inside container |
+| `PYTHON_VERSION` | 3.12    | Python version            |
 
-### Development Mode (without app.repos.yaml)
+### Git Repository Strategy
 
-For local development where you mount your project directly, you don't need
-`app.repos.yaml`:
+There are three recommended approaches for managing your project code:
 
-1. **Remove or comment out** the `app.repos.yaml` volume mount in
-   `docker-compose.yml`
-2. **Mount your project** to `/workspace/app`
-3. **Set `SKIP_VCS=true`** to skip vcstool installation and repository import
+#### 1. Volume Mount (Development)
+
+Mount your local project directly for live code changes:
 
 ```yaml
 # docker-compose.yml
 services:
     app:
-        image: hdae/ai-base
-        environment:
-            - PUID=${PUID:-1000}
-            - PGID=${PGID:-1000}
-            - PYTHON_VERSION=3.12
-            - SKIP_VCS=true # Skip vcs import
         volumes:
             - .:/workspace/app # Mount your project
             - app-data:/workspace
             - uv-cache:/workspace/.uv-cache
-            # - ./app.repos.yaml:/workspace/app.repos.yaml  # Not needed
 ```
 
-This pattern is recommended when:
+Best for active development with live code changes.
 
-- You're actively developing and want live code changes
-- Your project already exists locally
-- You don't need to clone external repositories
+#### 2. Git Submodules
+
+Add your project as a git submodule and mount it:
+
+```bash
+# In your docker-compose directory
+git submodule add https://github.com/example/my-app.git app
+git submodule update --init
+```
+
+Then mount in `docker-compose.yml`:
+
+```yaml
+volumes:
+    - ./app:/workspace/app
+```
+
+Best for versioned dependencies and reproducible builds.
+
+#### 3. Clone in start.sh (Plugins)
+
+For plugins or dependencies that don't conflict with volume mounts, use the
+`clone_or_update` helper function in `start.sh`:
+
+```bash
+# In start.sh
+clone_or_update "https://github.com/example/plugin.git" "/workspace/plugins/example" "v1.0.0"
+```
+
+The helper function is idempotent and supports branches, tags, and commit
+hashes. See `start.sh` for the complete function documentation and examples.
 
 ### GPU Support
 
@@ -129,7 +148,6 @@ The base image's `entrypoint.sh` handles:
 - UID/GID adjustment (runs as root, then switches to `app` user)
 - Python installation via `uv`
 - Virtual environment setup at `/workspace/.venv`
-- vcstool repository import (if `app.repos.yaml` exists)
 - Executing `/start.sh` (your script)
 
 To fully customize the entrypoint, mount your own:
@@ -138,6 +156,28 @@ To fully customize the entrypoint, mount your own:
 volumes:
     - ./entrypoint.sh:/entrypoint.sh
 ```
+
+## Debugging & Best Practices
+
+### Recommended Workflow
+
+When developing or debugging, run in **foreground mode** (without `-d`):
+
+```bash
+task up
+# or: docker compose up
+```
+
+**Why?**
+
+1. **Immediate Feedback**: You see logs and errors in real-time.
+2. **No Restart Loops**: If `start.sh` fails, the container stops immediately,
+   allowing you to read the specific error message.
+3. **Simpler Troubleshooting**: Static logs make it easier to isolate errors and
+   share them with AI assistants or colleagues.
+
+**Avoid** using `task up.detach` (detached mode) for debugging, as it requires
+extra steps to view logs (`task logs`) and can hide restart loops.
 
 ## Task Commands
 
