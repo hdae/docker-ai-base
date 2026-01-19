@@ -23,19 +23,27 @@ the `hdae/ai-base` base image.
 ## Setup
 
 1. **Copy template files** to your project:
+
    ```bash
    cp -r templates/* /path/to/your-project/
    ```
 
-2. **Edit `start.sh`** to customize for your project:
+2. **Delete this README** (or rename it):
+
+   This file is for template usage instructions only. Once you've copied the
+   files, delete `README.md` from your project or replace it with your own.
+
+3. **Edit `start.sh`** to customize for your project:
+
    - Clone repositories (if needed)
    - Install dependencies
    - Start your application
 
-3. **Start**:
+4. **Start**:
+
    ```bash
    task up
-   # or: docker-compose up
+   # or: docker compose up
    ```
 
 ## Configuration
@@ -182,10 +190,12 @@ extra steps to view logs (`task logs`) and can hide restart loops.
 ## Task Commands
 
 ```bash
-task up         # Start container
-task up.detach  # Start in background
-task down       # Stop container
-task exec       # Open bash shell (or: task exec -- <command>)
-task logs       # View logs
-task reset      # Delete app volume
+task up                # Start container
+task up.detach         # Start in background
+task down              # Stop container
+task restart           # Restart container
+task exec              # Open bash shell
+task exec -- <command> # Execute command
+task logs              # View logs
+task reset             # Delete app volume
 ```
