@@ -37,10 +37,12 @@ tasks:
     cmds:
       - docker compose restart
 
-  shell:
-    desc: Open a shell in the running container
+  exec:
+    desc: Execute a command in the running container
     cmds:
-      - docker compose exec app bash
+      - docker compose exec --user app app {{.CLI_ARGS}}
+    vars:
+      CLI_ARGS: '{{default "bash" .CLI_ARGS}}'
 
   logs:
     desc: View container logs

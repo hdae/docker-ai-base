@@ -26,6 +26,7 @@ services:
       # Recommended: Use git submodules or clone directly, then mount here
       # - .:/workspace/app
 
+    working_dir: /workspace/app
     tty: true
     security_opt:
       - no-new-privileges:true

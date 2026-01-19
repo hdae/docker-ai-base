@@ -185,7 +185,7 @@ extra steps to view logs (`task logs`) and can hide restart loops.
 task up         # Start container
 task up.detach  # Start in background
 task down       # Stop container
-task shell      # Open bash in container
+task exec       # Open bash shell (or: task exec -- <command>)
 task logs       # View logs
 task reset      # Delete app volume
 ```
