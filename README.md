@@ -17,17 +17,26 @@ This project provides:
 
 ```bash
 task build
-# or: docker build -t hdae/ai-base ./base
+# Tags the image as both hdae/ai-base:bookworm and hdae/ai-base:latest.
+# For a different Debian version:
+# task build.debian DEBIAN_VERSION=bullseye
 ```
 
-### 2. Use in Your Project
+### 2. Initialize Your Project
 
-Copy files from `templates/` to your project:
+Use the helper script to copy the template files into your project:
 
 ```bash
-cp -r templates/* /path/to/your-project/
+scripts/init.sh /path/to/your-project
 cd /path/to/your-project
 task up
+```
+
+The initializer renames the template README to `TEMPLATE_README.md` so it
+does not shadow your own project README. If you prefer a manual copy:
+
+```bash
+cp -r templates/. /path/to/your-project/
 ```
 
 See [templates/README.md](templates/README.md) for detailed template usage.
@@ -45,22 +54,27 @@ See [templates/README.md](templates/README.md) for detailed template usage.
 
 ```
 ├── base/              # Base image definition
+│   ├── .dockerignore
 │   ├── Dockerfile
 │   └── entrypoint.sh  # Entrypoint script
 ├── templates/         # Template for projects
+│   ├── .env.example
 │   ├── docker-compose.yml
 │   ├── Taskfile.yml
 │   ├── start.sh       # Includes git clone helpers
 │   └── README.md
+├── scripts/
+│   └── init.sh        # Template initializer
 ├── Taskfile.yml       # Build commands
+├── LICENSE
 └── README.md          # This file
 ```
 
 ## Build Options
 
 ```bash
-task build                          # Default (Debian Bookworm)
-task build.debian DEBIAN_VERSION=bullseye  # Custom Debian version
+task build                                 # hdae/ai-base:bookworm + :latest
+task build.debian DEBIAN_VERSION=bullseye  # hdae/ai-base:bullseye
 ```
 
 ## Extending the Base Image

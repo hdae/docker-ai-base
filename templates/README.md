@@ -22,16 +22,22 @@ the `hdae/ai-base` base image.
 
 ## Setup
 
-1. **Copy template files** to your project:
+1. **Initialize your project** using the helper (recommended):
 
    ```bash
-   cp -r templates/* /path/to/your-project/
+   scripts/init.sh /path/to/your-project
    ```
 
-2. **Delete this README** (or rename it):
+   This copies the template files (including `.env.example`) and renames this
+   README to `TEMPLATE_README.md` so it doesn't shadow your own project
+   README. For a manual copy use `cp -r templates/. /path/to/your-project/`.
 
-   This file is for template usage instructions only. Once you've copied the
-   files, delete `README.md` from your project or replace it with your own.
+2. **Configure environment variables** (optional):
+
+   ```bash
+   cp .env.example .env
+   # edit .env as needed
+   ```
 
 3. **Edit `start.sh`** to customize for your project:
 
@@ -50,13 +56,17 @@ the `hdae/ai-base` base image.
 
 ### Environment Variables
 
-Set in `.env` or `docker-compose.yml`:
+Set in `.env` (see `.env.example`) or `docker-compose.yml`:
 
-| Variable         | Default | Description               |
-| ---------------- | ------- | ------------------------- |
-| `PUID`           | 1000    | User ID inside container  |
-| `PGID`           | 1000    | Group ID inside container |
-| `PYTHON_VERSION` | 3.12    | Python version            |
+| Variable               | Default              | Description                             |
+| ---------------------- | -------------------- | --------------------------------------- |
+| `PUID`                 | Host UID (auto)      | User ID inside container                |
+| `PGID`                 | Host GID (auto)      | Group ID inside container               |
+| `PYTHON_VERSION`       | 3.12                 | Python version                          |
+| `COMPOSE_PROJECT_NAME` | Current dir name     | Compose project name (volume prefix)    |
+
+The uv package cache is mounted at `/opt/uv-cache` (outside `/workspace`) so
+that `app-data` volumes and host bind mounts cannot shadow it.
 
 ### Git Repository Strategy
 
@@ -187,6 +197,12 @@ task up
 **Avoid** using `task up.detach` (detached mode) for debugging, as it requires
 extra steps to view logs (`task logs`) and can hide restart loops.
 
+### Production Runtime
+
+The template sets `restart: "no"` to make failures visible during development.
+For long-running production deployments, change it to `restart: unless-stopped`
+(or `always`) in `docker-compose.yml` so the container recovers automatically.
+
 ## Task Commands
 
 ```bash
@@ -197,5 +213,6 @@ task restart           # Restart container
 task exec              # Open bash shell
 task exec -- <command> # Execute command
 task logs              # View logs
-task reset             # Delete app volume
+task reset             # Delete app-data volume (keeps shared uv-cache)
+task purge             # Delete app-data AND shared uv-cache
 ```
