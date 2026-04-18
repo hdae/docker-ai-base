@@ -29,8 +29,8 @@ the `hdae/ai-base` base image.
    ```
 
    This copies the template files (including `.env.example`) and renames this
-   README to `TEMPLATE_README.md` so it doesn't shadow your own project
-   README. For a manual copy use `cp -r templates/. /path/to/your-project/`.
+   README to `TEMPLATE_README.md` so it doesn't shadow your own project README.
+   For a manual copy use `cp -r templates/. /path/to/your-project/`.
 
 2. **Configure environment variables** (optional):
 
@@ -58,12 +58,12 @@ the `hdae/ai-base` base image.
 
 Set in `.env` (see `.env.example`) or `docker-compose.yml`:
 
-| Variable               | Default              | Description                             |
-| ---------------------- | -------------------- | --------------------------------------- |
-| `PUID`                 | Host UID (auto)      | User ID inside container                |
-| `PGID`                 | Host GID (auto)      | Group ID inside container               |
-| `PYTHON_VERSION`       | 3.12                 | Python version                          |
-| `COMPOSE_PROJECT_NAME` | Current dir name     | Compose project name (volume prefix)    |
+| Variable               | Default          | Description                          |
+| ---------------------- | ---------------- | ------------------------------------ |
+| `PUID`                 | Host UID (auto)  | User ID inside container             |
+| `PGID`                 | Host GID (auto)  | Group ID inside container            |
+| `PYTHON_VERSION`       | 3.12             | Python version                       |
+| `COMPOSE_PROJECT_NAME` | Current dir name | Compose project name (volume prefix) |
 
 The uv package cache is mounted at `/opt/uv-cache` (outside `/workspace`) so
 that `app-data` volumes and host bind mounts cannot shadow it.
@@ -79,11 +79,11 @@ Mount your local project directly for live code changes:
 ```yaml
 # docker-compose.yml
 services:
-    app:
-        volumes:
-            - .:/workspace/app # Mount your project
-            - app-data:/workspace
-            - uv-cache:/workspace/.uv-cache
+  app:
+    volumes:
+      - .:/workspace/app # Mount your project
+      - app-data:/workspace
+      - uv-cache:/workspace/.uv-cache
 ```
 
 Best for active development with live code changes.
@@ -102,7 +102,7 @@ Then mount in `docker-compose.yml`:
 
 ```yaml
 volumes:
-    - ./app:/workspace/app
+  - ./app:/workspace/app
 ```
 
 Best for versioned dependencies and reproducible builds.
@@ -126,12 +126,12 @@ Uncomment in `docker-compose.yml`:
 
 ```yaml
 deploy:
-    resources:
-        reservations:
-            devices:
-                - driver: nvidia
-                  count: 1
-                  capabilities: [gpu]
+  resources:
+    reservations:
+      devices:
+        - driver: nvidia
+          count: 1
+          capabilities: [gpu]
 ```
 
 ### Custom Dockerfile
@@ -154,9 +154,9 @@ Then update `docker-compose.yml`:
 
 ```yaml
 services:
-    app:
-        build: .
-        # image: hdae/ai-base  # Comment this out
+  app:
+    build: .
+    # image: hdae/ai-base  # Comment this out
 ```
 
 ### Custom Entrypoint
@@ -172,7 +172,7 @@ To fully customize the entrypoint, mount your own:
 
 ```yaml
 volumes:
-    - ./entrypoint.sh:/entrypoint.sh
+  - ./entrypoint.sh:/entrypoint.sh
 ```
 
 ## Debugging & Best Practices

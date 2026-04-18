@@ -32,8 +32,8 @@ cd /path/to/your-project
 task up
 ```
 
-The initializer renames the template README to `TEMPLATE_README.md` so it
-does not shadow your own project README. If you prefer a manual copy:
+The initializer renames the template README to `TEMPLATE_README.md` so it does
+not shadow your own project README. If you prefer a manual copy:
 
 ```bash
 cp -r templates/. /path/to/your-project/
