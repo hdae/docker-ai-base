@@ -60,8 +60,11 @@ if [ "$(id -u)" = "0" ]; then
         CHOWN_TARGETS+=("$UV_CACHE_DIR")
     fi
     echo "Fixing permissions for ${CHOWN_TARGETS[*]} (only mismatched entries)..."
+    # -h on chown so that dangling symlinks (common in uv's sdists cache) are
+    # retagged instead of dereferenced — otherwise chown tries to follow the
+    # link and fails with "cannot dereference" on broken targets.
     find "${CHOWN_TARGETS[@]}" -xdev \( -not -user app -o -not -group "$APP_GROUP" \) -print0 \
-        | xargs -0r chown "app:$APP_GROUP"
+        | xargs -0r chown -h "app:$APP_GROUP"
 
     # Switch to app user for the rest
     exec gosu app "$0" "$@"
