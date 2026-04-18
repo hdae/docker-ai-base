@@ -111,7 +111,11 @@ echo "=== Entrypoint complete (venv active) ==="
 if [ -f "/start.sh" ]; then
     echo "Executing /start.sh..."
     exec /start.sh "$@"
-else
-    echo "No /start.sh found. Executing CMD: $@"
+elif [ $# -gt 0 ]; then
+    echo "No /start.sh found. Executing CMD: $*"
     exec "$@"
+else
+    echo "No /start.sh and no CMD provided. Nothing to run — exiting."
+    echo "Hint: mount /start.sh, set a CMD in your Dockerfile, or pass a command (e.g. 'docker run -it hdae/ai-base bash')."
+    exit 0
 fi

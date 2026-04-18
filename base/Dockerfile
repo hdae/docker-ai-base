@@ -57,4 +57,6 @@ COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["bash"]
+# No default CMD: downstream images / compose specs must provide one, or
+# mount a /start.sh. A default of ["bash"] would be silently forwarded to
+# start.sh's pass-through branch and hijack the intended server startup.

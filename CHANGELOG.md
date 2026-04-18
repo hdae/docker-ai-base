@@ -29,6 +29,13 @@
   追随するため暗黙的には互換だが、タグ明示を推奨。([bef4193])
 - **`push` タスク削除**: レジストリ未設定のまま置かれていたルート `task push`
   を削除。([bef4193])
+- **デフォルト `CMD` 削除**: base image から `CMD ["bash"]` を削除。
+  downstream の `start.sh` がしばしば `$# > 0 → exec "$@"` の
+  pass-through 分岐を持っており、親の `bash` が素通りでサーバー起動を
+  乗っ取る事故が起きていたため。以降は consumer 側で `command:` または
+  Dockerfile の `CMD` を明示するか、`/start.sh` をマウントする必要が
+  ある。`docker run -it hdae/ai-base` だけで shell に入りたい場合は
+  末尾に `bash` を付ける。
 
 ### Added
 
