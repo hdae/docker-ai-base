@@ -48,7 +48,7 @@ clone_or_update() {
     if [ -d "$target_dir/.git" ]; then
         echo "📦 Updating $target_dir to $ref..."
         cd "$target_dir"
-        git fetch origin --quiet
+        git fetch origin --tags --prune --quiet
         git checkout "$ref" --quiet
         # Try to pull if it's a branch, ignore errors if it's a tag/commit
         git reset --hard "origin/$ref" 2>/dev/null || git reset --hard "$ref"
