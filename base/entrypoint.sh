@@ -52,9 +52,15 @@ if [ "$(id -u)" = "0" ]; then
     # Fix ownership of workspace and mounted volumes.
     # Only chown entries whose owner/group does not match, to avoid re-walking
     # a fully-owned tree on every restart.
-    echo "Fixing permissions for /workspace (only mismatched entries)..."
+    # /workspace is always fixed. UV_CACHE_DIR (if set and existing) is also
+    # fixed so that a previously root-owned named volume gets reclaimed.
     APP_GROUP="$(id -gn app)"
-    find /workspace -xdev \( -not -user app -o -not -group "$APP_GROUP" \) -print0 \
+    CHOWN_TARGETS=("/workspace")
+    if [ -n "${UV_CACHE_DIR:-}" ] && [ -d "$UV_CACHE_DIR" ]; then
+        CHOWN_TARGETS+=("$UV_CACHE_DIR")
+    fi
+    echo "Fixing permissions for ${CHOWN_TARGETS[*]} (only mismatched entries)..."
+    find "${CHOWN_TARGETS[@]}" -xdev \( -not -user app -o -not -group "$APP_GROUP" \) -print0 \
         | xargs -0r chown "app:$APP_GROUP"
 
     # Switch to app user for the rest

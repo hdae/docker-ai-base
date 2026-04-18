@@ -41,8 +41,13 @@ RUN if ! getent group 1000 >/dev/null; then groupadd -g 1000 app; else groupmod 
     if ! getent passwd 1000 >/dev/null; then useradd -m -u 1000 -g app -s /bin/bash app; else usermod -l app -d /home/app -m -g app -s /bin/bash "$(getent passwd 1000 | cut -d: -f1)"; fi
 
 # ========================================
-# Working Directory
+# Working Directory & Default Cache Dir
 # ========================================
+# Pre-create /opt/uv-cache with app ownership so that when a named volume is
+# first mounted here, Docker seeds it with the correct owner. Without this
+# the volume would be root:root and uv cache writes would fail.
+RUN mkdir -p /opt/uv-cache && chown app:app /opt/uv-cache
+
 WORKDIR /workspace
 
 # ========================================
