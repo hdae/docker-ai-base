@@ -11,6 +11,9 @@ This project provides:
 - **Templates**: Ready-to-use Docker Compose setup with git helpers for your
   projects
 
+Recent breaking changes and migration steps are documented in
+[CHANGELOG.md](CHANGELOG.md).
+
 ## Quick Start
 
 ### 1. Build the Base Image
