@@ -57,17 +57,18 @@ tasks:
       - docker volume inspect shared_uv-cache
 
   reset:
-    desc: Reset app volume (keeps cache)
-    prompt: This will delete the app volume. Continue?
+    desc: Reset app-data volume (keeps shared uv-cache)
+    prompt: This will delete the app-data volume. Shared uv-cache is preserved. Continue?
     cmds:
       - docker compose down
       - docker volume rm {{.COMPOSE_PROJECT_NAME}}_app-data || true
-      - echo "✓ Reset complete. Run 'task up' to restart."
+      - echo "✓ Reset complete (shared_uv-cache preserved). Run 'task up' to restart."
 
   purge:
-    desc: Purge project volumes (keeps shared cache)
-    prompt: This will delete ALL volumes. Continue?
+    desc: Purge app-data AND shared uv-cache
+    prompt: This will delete app-data AND the shared uv-cache volume. Continue?
     cmds:
-      - docker compose down
+      - docker compose down -v
       - docker volume rm {{.COMPOSE_PROJECT_NAME}}_app-data || true
-      - echo "✓ Purge complete (shared_uv-cache preserved). Run 'task up' to restart."
+      - docker volume rm shared_uv-cache || true
+      - echo "✓ Purge complete. Run 'task up' to restart (cache will be rebuilt)."
