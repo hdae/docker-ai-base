@@ -83,7 +83,7 @@ services:
     volumes:
       - .:/workspace/app # Mount your project
       - app-data:/workspace
-      - uv-cache:/workspace/.uv-cache
+      - uv-cache:/opt/uv-cache
 ```
 
 Best for active development with live code changes.
