@@ -36,8 +36,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ========================================
 # User Setup (Default UID/GID, adjusted at runtime)
 # ========================================
-RUN groupadd -g 1000 app && \
-    useradd -m -u 1000 -g app -s /bin/bash app
+# Guard against GID/UID 1000 already existing in the base image.
+RUN if ! getent group 1000 >/dev/null; then groupadd -g 1000 app; else groupmod -n app "$(getent group 1000 | cut -d: -f1)"; fi && \
+    if ! getent passwd 1000 >/dev/null; then useradd -m -u 1000 -g app -s /bin/bash app; else usermod -l app -d /home/app -m -g app -s /bin/bash "$(getent passwd 1000 | cut -d: -f1)"; fi
 
 # ========================================
 # Working Directory

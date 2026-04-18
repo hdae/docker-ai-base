@@ -15,13 +15,13 @@ set -euo pipefail
 # - Starting your application
 #
 # Available environment variables from entrypoint:
-# - APP_DIR=/workspace
+# - WORKSPACE_DIR=/workspace
 # - VIRTUAL_ENV=/workspace/.venv
 # - PYTHON_VERSION
 # ========================================
 
-# Ensure APP_DIR is set (fallback if not provided by entrypoint)
-APP_DIR="${APP_DIR:-/workspace}"
+# Ensure WORKSPACE_DIR is set (fallback if not provided by entrypoint)
+WORKSPACE_DIR="${WORKSPACE_DIR:-/workspace}"
 
 # ========================================
 # Git Clone Helper (Idempotent)
@@ -68,15 +68,15 @@ clone_or_update() {
 # Example: Clone plugins
 # ========================================
 # Uncomment and customize as needed:
-# clone_or_update "https://github.com/example/plugin1.git" "$APP_DIR/plugins/plugin1" "main"
-# clone_or_update "https://github.com/example/plugin2.git" "$APP_DIR/plugins/plugin2" "v2.1.0"
+# clone_or_update "https://github.com/example/plugin1.git" "$WORKSPACE_DIR/plugins/plugin1" "main"
+# clone_or_update "https://github.com/example/plugin2.git" "$WORKSPACE_DIR/plugins/plugin2" "v2.1.0"
 
 # ========================================
 # Dependencies
 # ========================================
-if [ -f "$APP_DIR/app/requirements.txt" ]; then
+if [ -f "$WORKSPACE_DIR/app/requirements.txt" ]; then
     echo "Installing dependencies..."
-    uv pip install -r "$APP_DIR/app/requirements.txt"
+    uv pip install -r "$WORKSPACE_DIR/app/requirements.txt"
 fi
 
 # ========================================

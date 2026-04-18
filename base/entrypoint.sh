@@ -19,7 +19,7 @@ set -euo pipefail
 PUID=${PUID:-1000}
 PGID=${PGID:-1000}
 PYTHON_VERSION=${PYTHON_VERSION:-3.12}
-export APP_DIR="/workspace"
+export WORKSPACE_DIR="/workspace"
 
 # ========================================
 # User/Group Adjustment (runs as root)
@@ -49,9 +49,13 @@ if [ "$(id -u)" = "0" ]; then
         usermod -u "$PUID" app
     fi
 
-    # Fix ownership of workspace and mounted volumes
-    echo "Fixing permissions for /workspace and mounted subdirectories..."
-    chown -R "app:$(id -gn app)" /workspace
+    # Fix ownership of workspace and mounted volumes.
+    # Only chown entries whose owner/group does not match, to avoid re-walking
+    # a fully-owned tree on every restart.
+    echo "Fixing permissions for /workspace (only mismatched entries)..."
+    APP_GROUP="$(id -gn app)"
+    find /workspace -xdev \( -not -user app -o -not -group "$APP_GROUP" \) -print0 \
+        | xargs -0r chown "app:$APP_GROUP"
 
     # Switch to app user for the rest
     exec gosu app "$0" "$@"
