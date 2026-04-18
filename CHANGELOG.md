@@ -35,7 +35,7 @@
   乗っ取る事故が起きていたため。以降は consumer 側で `command:` または
   Dockerfile の `CMD` を明示するか、`/start.sh` をマウントする必要が
   ある。`docker run -it hdae/ai-base` だけで shell に入りたい場合は
-  末尾に `bash` を付ける。
+  末尾に `bash` を付ける。([3e424fa])
 
 ### Added
 
@@ -81,6 +81,11 @@
   など)への切替が失敗していた。`--tags --prune` を付与して 修正。([a815464])
 - **`build.debian` のタグ上書き**: Debian バージョン違いを並行ビルド しても同じ
   `hdae/ai-base` タグを上書きしていた問題を解消。 ([bef4193])
+- **entrypoint の chown が dangling symlink で失敗する**: uv の sdists
+  キャッシュは一時ビルドディレクトリ(削除済み)を指す broken symlink を
+  含むことがあり、所有者補正時の `chown` が dereference を試みて
+  `cannot dereference` で落ちていた。`chown -h` でリンク自体を
+  retag するように変更。([35e22ad])
 
 ## 移行ガイド (Unreleased)
 
@@ -139,6 +144,38 @@ task purge   # app-data と shared_uv-cache を削除
 task up      # 新構成で再作成
 ```
 
+### 6. 独自 `Dockerfile` の `ENV` を更新
+
+downstream で `FROM hdae/ai-base` な Dockerfile を持っている場合、
+`APP_DIR` 指定と `UV_CACHE_DIR` の旧パスを更新する(base の ENV は
+downstream 側の指定で shadow されるため)。
+
+```dockerfile
+# Before
+ENV APP_DIR=/workspace \
+    PROJECT_ROOT=/workspace/app \
+    UV_CACHE_DIR=/workspace/.uv-cache
+
+# After (APP_DIR は不要、UV_CACHE_DIR は /opt/uv-cache)
+ENV PROJECT_ROOT=/workspace/app \
+    UV_CACHE_DIR=/opt/uv-cache
+```
+
+### 7. `CMD ["bash"]` 削除への対応
+
+base image のデフォルト `CMD ["bash"]` が撤去されたことに伴う確認事項。
+
+- compose で `command:` も Dockerfile で `CMD` も指定せず、`/start.sh`
+  もマウントしていない場合、コンテナは entrypoint 完了後そのまま正常終了
+  (exit 0)する。サーバーを起動したい場合は `command:` / `CMD` / `start.sh`
+  いずれかで明示。
+- 親 CMD `bash` が `start.sh` の `$# > 0 → exec "$@"` 分岐で
+  hijack されて「サーバーが起動せず bash が立ち上がる」事故を回避する
+  ため、暫定対処として `command: []` を compose に入れていた場合は、
+  もう不要なので削除して構わない。
+- `docker run -it hdae/ai-base` だけで shell に入る運用をしていた場合は
+  `docker run -it hdae/ai-base bash` のように末尾に `bash` を付ける。
+
 [276fb12]: https://github.com/hdae/docker-ai-base/commit/276fb12
 [bef4193]: https://github.com/hdae/docker-ai-base/commit/bef4193
 [8bab615]: https://github.com/hdae/docker-ai-base/commit/8bab615
@@ -148,3 +185,5 @@ task up      # 新構成で再作成
 [913c005]: https://github.com/hdae/docker-ai-base/commit/913c005
 [f3e02fb]: https://github.com/hdae/docker-ai-base/commit/f3e02fb
 [6f92126]: https://github.com/hdae/docker-ai-base/commit/6f92126
+[35e22ad]: https://github.com/hdae/docker-ai-base/commit/35e22ad
+[3e424fa]: https://github.com/hdae/docker-ai-base/commit/3e424fa
